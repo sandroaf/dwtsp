@@ -14,7 +14,7 @@
     $berry = strpos($_SERVER['HTTP_USER_AGENT'],"BlackBerry");
     $ipod = strpos($_SERVER['HTTP_USER_AGENT'],"iPod");
 
-   /*
+   
     // check if is a mobile
     if ($iphone || $android || $palmpre || $ipod || $berry == true)
     {
@@ -25,8 +25,8 @@
     else {
       header('Location: https://web.whatsapp.com/send?phone='.$fone.'&text='.$texto);
     }
-    */
-    header('Location: https://api.whatsapp.com/send?phone='.$fone.'&text='.$texto);
+    
+    //header('Location: https://api.whatsapp.com/send?phone='.$fone.'&text='.$texto);
    }
 ?>
 
