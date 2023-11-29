@@ -40,7 +40,8 @@ label {
 
 input[type=button] {
     display: block;
-    background-color: #4CAF50;
+    width: 80%;
+    background-color: #08800c;
     color: white;
     margin-top: 8px;
     margin-left: auto;
@@ -53,7 +54,7 @@ input[type=button] {
 }
 
 input[type=button]:hover {
-    background-color: #45a049;
+    background-color: #73c477;
 }
 
 input[type=reset] {
