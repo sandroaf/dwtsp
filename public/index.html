@@ -1,150 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/x-icon" href="img/logo-dwtsp-96.png">
+    <link rel="stylesheet" href="estilo.css">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="application-name" content="dwtsp.web.app">
     <meta name="apple-mobile-web-app-title" content="dwtsp">
     <meta name="msapplication-starturl" content="/index.html">
-
+    <meta name="description" content="Web APP - PWA - Criar um atalho para mensagens diretas pela API ou Webapp do WhatsApp para um número de telefone. Sem necessitar salvar o contato.">
     <title>DWTSP - Contato Direto pelo WhatsApp</title>
-    <style type="text/css">
-        input {
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-        }
 
-        * {
-
-            box-sizing: border-box;
-        }
-
-        body {
-            background-color: #999;
-        }
-
-        h3 {
-            font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
-        }
-        
-        img {
-            height: 140px;
-        } 
-
-        input[type=text], select, textarea {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            resize: vertical;
-            font-size: 20px;
-        }
-
-        label {
-            padding: 12px 12px 12px 0px;
-            display: inline-block;
-            width: 100%;
-            text-align: left;
-            font-size: 20px;
-        }
-
-        input[type=button] {
-            display: block;
-            background-color: #4CAF50;
-            color: white;
-            margin-top: 8px;
-            margin-left: auto;
-            margin-right: auto;
-            padding: 12px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 20px;
-        }
-
-        input[type=button]:hover {
-            background-color: #45a049;
-        }
-
-        input[type=reset] {
-            background-color: #f44336;
-            color: white;
-            margin-top: 12px;
-            padding: 12px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 20px;
-        }
-
-        input[type=reset]:hover {
-            background-color: #ab3f33;
-        }
-
-        .center {
-            margin: auto;
-            width: 50%;
-            padding: 10px;
-        }
-
-        .container {
-            border-radius: 5px;
-            background-color: #f2f2f2;
-            padding: 20px;
-            width: 100%;
-            align: center;
-        }
-
-        .col-20 {
-            float: left;
-            width: 20%;
-            margin-top: 6px;
-        }
-
-        .col-80 {
-            float: right;
-            width: 80%;
-            margin-top: 6px;
-        }
-
-        .row-botton {
-            margin-top:12px;
-        }
-
-        /* Clear floats after the columns */
-        .row:after, .row-botton:after {
-            content: "";
-            display: table;
-            clear: both;
-        }
-
-
-        /* Responsive layout - when the screen is less than 600px wide, make the two columns stack on top of each other instead of next to each other */
-        @media screen and (max-width: 1440px) {
-            .col-20, .col-80, input[type=submit], input[type=reset] {
-                width: 100%;
-                margin-top: 0;
-            }
-         }
-
-        img.displayed {
-            display: block;
-            margin-left: auto;
-            margin-right: auto; 
-        }
-
-        h3 {
-            text-align: center;
-            font-family: verdana;
-            text-decoration: 
-        }
-
-    </style>
     <script>
        function abreWhats(evt) {  
 
