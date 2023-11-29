@@ -83,7 +83,7 @@ input[type=reset]:hover {
     background-color: #f2f2f2;
     padding: 20px;
     width: 100%;
-    align: center;
+    align-items: center;
 }
 
 .col-20 {
