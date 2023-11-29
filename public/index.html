@@ -1,41 +1,9 @@
-<?php
-   $fone = rawurlencode($_GET['phone']);
-   $texto =  rawurlencode($_GET['text']);
-   //echo $_SERVER['HTTP_USER_AGENT'];
-   if ($fone != '') {
-    
-
-
-    // Fix Api Whatsapp on Desktops
-    // Dev: Jean Livino
-    $iphone = strpos($_SERVER['HTTP_USER_AGENT'],"iPhone");
-    $android = strpos($_SERVER['HTTP_USER_AGENT'],"Android");
-    $palmpre = strpos($_SERVER['HTTP_USER_AGENT'],"webOS");
-    $berry = strpos($_SERVER['HTTP_USER_AGENT'],"BlackBerry");
-    $ipod = strpos($_SERVER['HTTP_USER_AGENT'],"iPod");
-
-   
-    // check if is a mobile
-    if ($iphone || $android || $palmpre || $ipod || $berry == true)
-    {
-      header('Location: https://api.whatsapp.com/send?phone='.$fone.'&text='.$texto);
-    }
-
-    // all others
-    else {
-      header('Location: https://web.whatsapp.com/send?phone='.$fone.'&text='.$texto);
-    }
-    
-    //header('Location: https://api.whatsapp.com/send?phone='.$fone.'&text='.$texto);
-   }
-?>
-
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Área Local - Contato WhatsApp - Link</title>
+    <title>Contato WhatsApp - Link</title>
     <style type="text/css">
         input {
             -webkit-appearance: none;
@@ -69,7 +37,7 @@
             font-size: 20px;
         }
 
-        input[type=submit] {
+        input[type=button] {
             background-color: #4CAF50;
             color: white;
             margin-top: 12px;
@@ -80,7 +48,7 @@
             font-size: 20px;
         }
 
-        input[type=submit]:hover {
+        input[type=button]:hover {
             background-color: #45a049;
         }
 
@@ -158,16 +126,41 @@
         }
 
     </style>
-  </head>
-  <body>
-     <div class="container center" id="conteudo">  
+    <script>
+       function abreWhats(evt) {  
+
+         phone = encodeURIComponent(window.document.getElementsByName("phone")[0].value);
+         text = encodeURIComponent(window.document.getElementsByName("text")[0].value);
+         console.log(phone);
+         console.log(text);
+         if (phone != '') {
+            // Fix Api Whatsapp on Desktops
+            userAgent = window.navigator.userAgent;
+            console.log(userAgent)
+            iphone = userAgent.indexOf("iPhone");
+            android = userAgent.indexOf("Android");
+            console.log(iphone);
+            console.log(android);
+            console.log(iphone || android);
+            // check if is a mobile
+            if (iphone || android)
+            {
+                window.open('https://api.whatsapp.com/send?phone='+phone+'&text='+text);
+            } else {// all others
+                winddow.open('https://web.whatsapp.com/send?phone='+phone+'&text='+text,'_blank');
+            }
+        }    
+       }
+    </script>
+</head>
+<body>
+    <div class="container center" id="conteudo">  
         <div class="row">
-           <img  class="displayed" src="https://www.arealocal.com.br/wp-content/uploads/2016/01/logo.png" alt="Área Local">
+           <!--<img  class="displayed" src="https://www.arealocal.com.br/wp-content/uploads/2016/01/logo.png" alt="Área Local">-->
         </div>
         <div class="row">
              <h3>ENVIAR MENSAGEM PELO WHATSAPP</h3> 
         </div>    
-        <form action="https://www.arealocal.com.br/areacomercial/whats" method="get" accept-charset="utf-8">
         <div class="row">
             <div class="col-20">
                <label for="phone">Telefone</label>
@@ -185,12 +178,12 @@
             </div>   
         </div>
         <div class="row-botton">  
-            <input type="submit" value="Enviar" />
+            <input type="button" onclick="abreWhats()" value="Enviar" />
         </div>
-        <div class="row-botton">  
-            <input type="reset" value="Limpar" />
-        </div>    
         </form>
     </div>    
-  </body>
+
+</body>
 </html>
+
+
