@@ -5,4 +5,6 @@ Aplicação Web em HTML 5, CSS e JavaScript que permite o envio direto de mensag
 
 Exemplo criando um PWA para apresentar um uso básico da tecnologia de Progressive Web Pages.
 
-Autor: Sandro Alencar Fernandes [@sandroaf](https://github.com/sandroaf) - (https://www.sandroaf.com.br)
+Autor: Sandro Alencar Fernandes 
+[@sandroaf](https://github.com/sandroaf)
+(https://www.sandroaf.com.br)
