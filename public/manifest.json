@@ -4,6 +4,7 @@
     "start_url": ".",
     "display": "minimal-ui",
     "background_color": "#999",
+    "theme_color": "#f2f2f2",
     "description": "Mensagens diretas para números WhatsApp.",
     "icons": [
         {
