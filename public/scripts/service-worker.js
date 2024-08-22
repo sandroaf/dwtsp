@@ -127,11 +127,11 @@ const resourcesToCache = [
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(cacheName)
-      .then((cache) => {
-        console.log('[Service Worker] Caching all: app shell and content');
-        return cache.addAll(resourcesToCache);
-      })
+    caches.open(cacheName).then((cache) => {
+      return cache.addAll(resourcesToCache).catch((error) => {
+        console.error('Falha ao adicionar arquivos ao cache:', error);
+      });
+    })
   );
 });
 
