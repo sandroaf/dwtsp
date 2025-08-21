@@ -5,7 +5,7 @@ const resourcesToCache = [
     '/index.html',
     '/estilo.css',
     '/main.js',
-    '/server-worker.js',
+    '/service-worker.js',
     './android/android-launchericon-144-144.png',
     './android/android-launchericon-192-192.png',
     './android/android-launchericon-48-48.png',
@@ -82,7 +82,7 @@ const resourcesToCache = [
     './windows11/Square44x44Logo.altform-unplated_targetsize-20.png',
     './windows11/Square44x44Logo.altform-unplated_targetsize-24.png',
     './windows11/Square44x44Logo.altform-unplated_targetsize-256.png',
-    './windows11/Square44x44Logo.altform-unplated_targetsize-30.png',,
+    './windows11/Square44x44Logo.altform-unplated_targetsize-30.png',
     './windows11/Square44x44Logo.altform-unplated_targetsize-32.png',
     './windows11/Square44x44Logo.altform-unplated_targetsize-36.png',
     './windows11/Square44x44Logo.altform-unplated_targetsize-40.png',
@@ -149,5 +149,16 @@ self.addEventListener('fetch', (event) => {
           });
         });
       })
+  );
+});
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.filter((name) => name !== cacheName)
+          .map((name) => caches.delete(name))
+      );
+    })
   );
 });
