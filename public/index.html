@@ -98,16 +98,23 @@
     const analytics = getAnalytics(app);
     const messaging = getMessaging(app);
 
-    // Solicita permissão ao usuário
-    messaging.requestPermission()
-    .then(() => messaging.getToken())
-    .then((token) => {
-        console.log('Token FCM:', token);
-        // Envie esse token para seu backend para enviar notificações
-    })
-    .catch((err) => {
-        console.error('Permissão negada ou erro:', err);
-    });
-  </script>
+    // Solicitação de permissão de notificações ao usuário
+  Notification.requestPermission().then((permission) => {
+      if (permission === 'granted') {
+          // Agora pode obter o token do FCM
+          messaging.getToken({ vapidKey: 'BDul1owA-9HCRfeX2Febg9Sl9kJHVkypdguhtOBIN_4oZnG1VqHWx8vfDA1x7bDxfxSGsqLDXvheGjrXn_yULq4' })
+              .then((token) => {
+                  console.log('Token FCM:', token);
+                  // Envie esse token para seu backend se quiser enviar push
+              })
+              .catch((err) => {
+                  console.error('Erro ao obter token:', err);
+              });
+      } else {
+          console.log('Permissão de notificação negada');
+      }
+  });
+ 
+</script>
 </body>
 </html>
