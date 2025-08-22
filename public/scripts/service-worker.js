@@ -20,6 +20,7 @@ const cacheName = 'meuAppCache-v1';
 const resourcesToCache = [
     '/',
     '/index.html',
+    '/offline.html',
     '/estilo.css',
     '/main.js',
     '/android/android-launchericon-144-144.png',
@@ -165,6 +166,22 @@ self.addEventListener('fetch', (event) => {
           });
         });
       })
+      .catch(() => {
+            // Fallback: retorna uma página offline ou uma resposta padrão
+            if (event.request.mode === 'navigate') {
+              return caches.match('/offline.html');
+            }
+            // Para imagens, pode retornar uma imagem padrão
+            if (event.request.destination === 'image') {
+              return caches.match('/img/logo-dwtsp-96.png');
+            }
+            // Para outros casos, retorna uma resposta vazia
+            return new Response('Você está offline.', {
+              status: 503,
+              statusText: 'Offline',
+              headers: { 'Content-Type': 'text/plain' }
+            });
+          })
   );
 });
 
