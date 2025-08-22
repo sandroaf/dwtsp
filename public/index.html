@@ -102,8 +102,8 @@
   Notification.requestPermission().then((permission) => {
       if (permission === 'granted') {
           // Agora pode obter o token do FCM
-          messaging.getToken({ vapidKey: 'BDul1owA-9HCRfeX2Febg9Sl9kJHVkypdguhtOBIN_4oZnG1VqHWx8vfDA1x7bDxfxSGsqLDXvheGjrXn_yULq4' })
-              .then((token) => {
+         getToken(messaging, { vapidKey: 'BDul1owA-9HCRfeX2Febg9Sl9kJHVkypdguhtOBIN_4oZnG1VqHWx8vfDA1x7bDxfxSGsqLDXvheGjrXn_yULq4' })
+          .then((token) => {
                   console.log('Token FCM:', token);
                   // Envie esse token para seu backend se quiser enviar push
               })
