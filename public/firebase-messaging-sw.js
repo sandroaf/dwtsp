@@ -14,3 +14,11 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 
 const messaging = firebase.messaging();
+
+self.addEventListener('push', function(event) {
+  const data = event.data.json();
+  self.registration.showNotification(data.notification.title, {
+    body: data.notification.body,
+    icon: '/img/logo-dwtsp-96.png'
+  });
+});
