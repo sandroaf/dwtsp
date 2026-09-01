@@ -52,7 +52,7 @@ Peças principais do repositório:
 }
 ```
 
-Pontos para explicar em aula:
+Pontos:
 - `"public": "public"` define a pasta que é publicada (equivalente ao `dist`/`build` de outros frameworks).
 - `rewrites` com `"source": "**"` redireciona **todas** as rotas para `index.html` — padrão usado em SPAs para permitir rotas do lado do cliente.
 - O deploy é feito com a CLI: `firebase deploy` (requer `firebase login` previamente).
@@ -101,14 +101,14 @@ O manifesto é o que permite "instalar" a aplicação como um app nativo:
 }
 ```
 
-Conceitos-chave para a aula:
+Conceitos-chave:
 - **`display`**: controla o "chrome" do navegador ao abrir o app instalado (`standalone`, `minimal-ui`, `fullscreen`, `browser`).
 - **`start_url`**: página inicial quando o app é aberto a partir do ícone instalado.
 - **`icons`**: múltiplos tamanhos/propósitos (`any` vs `maskable`) — necessário por causa das diferenças entre Android (ícones adaptativos), iOS e Windows (Tiles do Windows 11).
 - O manifesto é referenciado no `<head>` do HTML: `<link rel="manifest" href="/manifest.json">`.
 - Meta tags complementares usadas no `index.html`: `theme-color`, `apple-mobile-web-app-capable`, `apple-mobile-web-app-title` — cobrem particularidades do Safari/iOS, que não segue 100% o manifest.json.
 
-Ferramenta útil para demonstrar em aula: aba **Application > Manifest** do DevTools do Chrome, e o critério de "instalabilidade" (installability criteria).
+Ferramenta útil: aba **Application > Manifest** do DevTools do Chrome, e o critério de "instalabilidade" (installability criteria).
 
 ---
 
@@ -157,14 +157,12 @@ sequenceDiagram
 - **`activate`**: limpa caches de versões antigas comparando o nome (`cacheName = 'meuAppCache-v1'`) — importante para **versionamento de cache** (mudar o nome força atualização).
 - **`fetch`**: estratégia **"Cache First, fallback to Network"** — tenta responder do cache; se não encontrar, busca na rede e grava no cache para a próxima vez. Em caso de falha total (offline), cai no fallback: página `offline.html` para navegação, imagem padrão para `image`, ou uma resposta 503 textual.
 
-Ponto de discussão em aula: essa é apenas **uma** das estratégias de cache (existem "Network First", "Stale-While-Revalidate", etc. — comparar trade-offs de atualização vs. velocidade).
-
 ---
 
 ## 5. Notificações Push com Firebase Cloud Messaging (FCM)
 
-Esse é o ponto que mais gera dúvida em aula, pois envolve **dois Service Workers distintos**
-coexistindo no projeto (vale destacar isso como uma inconsistência a corrigir — ver seção 6).
+**Dois Service Workers distintos**
+coexistindo no projeto.
 
 ### 5.1 Passo a passo do fluxo Push
 
@@ -227,29 +225,15 @@ self.addEventListener('push', function(event) {
 
 ---
 
-## 6. Pontos de atenção para discutir com a turma
+## 6. Pontos de atenção
 
-Ótimas oportunidades de debate/exercício com base neste projeto real:
+debate/exercício com base neste projeto real:
 
 1. **Dois Service Workers concorrentes**: `service-worker.js` (cache) é registrado em `/scripts/service-worker.js` com escopo `/scripts/`, e `firebase-messaging-sw.js` fica na raiz. Pergunta para a turma: eles conflitam? Como seria a arquitetura correta para **unificar cache offline + push** em um único Service Worker (ou como fazer dois SWs coexistirem corretamente com escopos diferentes)?
 2. **Versões diferentes do SDK do Firebase** usadas em cada arquivo (`10.0.0` no `firebase-messaging-sw.js` vs `10.11.0` no `index.html`) — por que isso é um risco de manutenção?
 3. **`index_firebase.html`** é o template padrão gerado pelo `firebase init hosting` e não está integrado ao app — bom exemplo de "boilerplate esquecido" para mostrar como identificar código morto num projeto real.
-4. **Fallback de offline**: testar em aula desligando a rede no DevTools (`Application > Service Workers > Offline`) e observar `offline.html` sendo servido.
+4. **Fallback de offline**: testar desligando a rede no DevTools (`Application > Service Workers > Offline`) e observar `offline.html` sendo servido.
 5. **Segurança**: diferenciar o que é "chave pública/identificador" (apiKey, VAPID key) do que precisa ser protegido no backend (nunca existe neste projeto porque tudo é client-side).
 6. **Ciclo de atualização do Service Worker**: mostrar como o navegador detecta um novo `service-worker.js` (byte a byte) e o fluxo *waiting → skipWaiting → activate*.
 
 ---
-
-## 7. Roteiro sugerido de apresentação (slides)
-
-1. O que é um PWA e por que importa em Desenvolvimento de Plataformas Móveis.
-2. Demo ao vivo: abrir o site, instalar como app, inspecionar o manifest no DevTools.
-3. Firebase Hosting: deploy simples de um site estático.
-4. Service Worker: ciclo de vida + estratégia de cache (com o diagrama da seção 4.2).
-5. Firebase Cloud Messaging: permissão → token → push (diagrama da seção 5.1).
-6. Discussão crítica: os pontos de atenção da seção 6 como exercício em grupo.
-7. Atividade prática sugerida: os alunos corrigem a duplicidade de Service Workers e unificam versões do SDK.
-
----
-
-*Documento gerado a partir da análise do código-fonte do projeto `dwtsp` em 2026-09-01.*
