@@ -15,10 +15,10 @@ com suporte a **notificações push via Firebase Cloud Messaging (FCM)**.
 ```mermaid
 flowchart LR
     A[Navegador do usuário] -->|1. acessa| B[index.html]
-    B -->|2. registra| C[Service Worker\nservice-worker.js]
+    B -->|2. registra| C[Service Worker único\nservice-worker.js]
     B -->|3. inicializa SDK e pede permissão| D[Firebase Messaging]
     D -->|4. gera token FCM| E[Servidor/Backend ou Console Firebase]
-    E -->|5. envia push| C2[firebase-messaging-sw.js]
+    E -->|5. envia push| C
     C -->|cacheia assets| F[Cache Storage]
     B -.->|deploy| G[Firebase Hosting]
 ```
@@ -29,9 +29,8 @@ Peças principais do repositório:
 |---|---|
 | [public/index.html](../public/index.html) | Página principal, PWA + inicialização do Firebase (client-side) |
 | [public/manifest.json](../public/manifest.json) | Manifesto do PWA (ícones, nome, cores, modo de exibição) |
-| [public/scripts/main.js](../public/scripts/main.js) | Registra o Service Worker de cache |
-| [public/scripts/service-worker.js](../public/scripts/service-worker.js) | Service Worker de **cache offline** (install/fetch/activate) |
-| [public/firebase-messaging-sw.js](../public/firebase-messaging-sw.js) | Service Worker **dedicado ao FCM** (notificações em background) |
+| [public/scripts/main.js](../public/scripts/main.js) | Registra o Service Worker único |
+| [public/service-worker.js](../public/service-worker.js) | Service Worker **único**: cache offline (install/fetch/activate) **+** notificações push em background (FCM) |
 | [firebase.json](../firebase.json) | Configuração do Firebase Hosting |
 | [package.json](../package.json) | Dependência do SDK `firebase` |
 
@@ -112,14 +111,14 @@ Ferramenta útil: aba **Application > Manifest** do DevTools do Chrome, e o crit
 
 ---
 
-## 4. Service Worker de cache offline (`scripts/service-worker.js`)
+## 4. Service Worker único: cache offline + push (`service-worker.js`)
 
 ### 4.1 Registro (`main.js`)
 
 ```js
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/scripts/service-worker.js')
+    navigator.serviceWorker.register('/service-worker.js')
       .then((registration) => console.log('Service Worker registrado:', registration))
       .catch((error) => console.error('Falha ao registrar o Service Worker:', error));
   });
@@ -129,6 +128,7 @@ if ('serviceWorker' in navigator) {
 - Feature detection (`'serviceWorker' in navigator`) antes de tentar registrar.
 - Registro dentro do evento `load` para não atrasar o carregamento inicial da página.
 - Service Workers só funcionam em contexto seguro (HTTPS ou `localhost`).
+- **O arquivo fica na raiz de `public/` (`/service-worker.js`), não em `/scripts/`.** O escopo padrão de um Service Worker é limitado ao diretório onde o script está — um SW em `/scripts/service-worker.js` só controlaria requisições sob `/scripts/`, nunca a navegação para `/` ou `/index.html`. Esse foi exatamente um bug real encontrado neste projeto: o fallback offline nunca era acionado na navegação porque o SW estava fora de escopo, e o navegador exibia sua página padrão (o "dino do Chrome") em vez do `offline.html`.
 
 ### 4.2 Ciclo de vida: `install` → `activate` → `fetch`
 
@@ -154,15 +154,15 @@ sequenceDiagram
 ```
 
 - **`install`**: pré-cacheia uma lista de assets estáticos (`resourcesToCache`) usando `caches.open(cacheName).addAll(...)`. Estratégia conhecida como **"cache the app shell"**.
-- **`activate`**: limpa caches de versões antigas comparando o nome (`cacheName = 'meuAppCache-v1'`) — importante para **versionamento de cache** (mudar o nome força atualização).
+- **`activate`**: limpa caches de versões antigas comparando o nome (`cacheName = 'meuAppCache-v3'`) — importante para **versionamento de cache** (mudar o nome força atualização).
 - **`fetch`**: estratégia **"Cache First, fallback to Network"** — tenta responder do cache; se não encontrar, busca na rede e grava no cache para a próxima vez. Em caso de falha total (offline), cai no fallback: página `offline.html` para navegação, imagem padrão para `image`, ou uma resposta 503 textual.
+- **`skipWaiting()`**: chamado ao final do `install`, faz o novo Service Worker assumir o controle imediatamente, sem esperar todas as abas antigas fecharem.
 
 ---
 
 ## 5. Notificações Push com Firebase Cloud Messaging (FCM)
 
-**Dois Service Workers distintos**
-coexistindo no projeto.
+O mesmo `service-worker.js` também atua como Service Worker do FCM — não há mais um segundo arquivo dedicado (o antigo `firebase-messaging-sw.js` foi removido).
 
 ### 5.1 Passo a passo do fluxo Push
 
@@ -172,7 +172,7 @@ sequenceDiagram
     participant App as index.html (cliente)
     participant Nav as Notification API
     participant FCM as Firebase Cloud Messaging
-    participant SW as firebase-messaging-sw.js
+    participant SW as service-worker.js
 
     App->>Nav: Notification.requestPermission()
     Nav-->>U: exibe prompt de permissão
@@ -180,8 +180,8 @@ sequenceDiagram
     App->>FCM: getToken(messaging, { vapidKey })
     FCM-->>App: token único do dispositivo/navegador
     Note over App,FCM: token deveria ser enviado a um backend<br/>para associar ao usuário e permitir envio direcionado
-    FCM-->>SW: envia push (evento 'push')
-    SW->>SW: self.registration.showNotification(...)
+    FCM-->>SW: envia push
+    SW->>SW: messaging.onBackgroundMessage(...) -> showNotification(...)
 ```
 
 ### 5.2 Solicitação de permissão e obtenção do token (client-side, em `index.html`)
@@ -201,27 +201,26 @@ Notification.requestPermission().then((permission) => {
 - A **VAPID key** (Voluntary Application Server Identification) é a chave pública que identifica o remetente autorizado a enviar push para esse projeto — gerada no console do Firebase (Project Settings > Cloud Messaging > Web Push certificates).
 - O `token` retornado identifica **este navegador/dispositivo específico**. Em uma aplicação real, esse token deve ser enviado para um backend e persistido (associado ao usuário) para permitir o envio de notificações direcionadas.
 
-### 5.3 Recebimento em background (`firebase-messaging-sw.js`)
+### 5.3 Recebimento em background (`service-worker.js`)
 
 ```js
-importScripts('https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/10.0.0/firebase-messaging-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.11.0/firebase-messaging-compat.js');
 
 firebase.initializeApp(firebaseConfig);
 const messaging = firebase.messaging();
 
-self.addEventListener('push', function(event) {
-  const data = event.data.json();
-  self.registration.showNotification(data.notification.title, {
-    body: data.notification.body,
-    icon: '/img/logo-dwtsp-96.png'
+messaging.onBackgroundMessage(function(payload) {
+  self.registration.showNotification(payload.notification.title, {
+    body: payload.notification.body,
+    icon: payload.notification.icon
   });
 });
 ```
 
-- Esse arquivo **precisa ficar na raiz do escopo do site** (`/firebase-messaging-sw.js`), pois é o nome/caminho padrão que o SDK do FCM procura para lidar com mensagens em background.
-- Usa a **versão "compat"** do SDK (API global `firebase.*`) via `importScripts`, porque Service Workers não suportam `import` de módulos ES do mesmo jeito que a página (limitação historicamente contornada com a versão compat).
-- O tratamento manual do evento `push` (em vez de usar `messaging.onBackgroundMessage(...)`) dá controle total sobre o payload e o ícone exibido.
+- Usa a **versão "compat"** do SDK (API global `firebase.*`) via `importScripts`, porque Service Workers registrados sem `{ type: 'module' }` são scripts clássicos e não suportam `import` de módulos ES — usar as versões não-compat (`firebase-app.js`/`firebase-messaging.js`) aqui quebra a avaliação inteira do Service Worker.
+- `messaging.onBackgroundMessage(...)` é o hook de alto nível do SDK compat para tratar mensagens FCM recebidas em background — dispensa um listener manual de `push`.
+- Como agora é o **mesmo arquivo** que cuida do cache, o registro em `main.js` (`/service-worker.js`, na raiz) já é suficiente; não é mais necessário registrar um segundo Service Worker.
 
 ---
 
@@ -229,8 +228,8 @@ self.addEventListener('push', function(event) {
 
 debate/exercício com base neste projeto real:
 
-1. **Dois Service Workers concorrentes**: `service-worker.js` (cache) é registrado em `/scripts/service-worker.js` com escopo `/scripts/`, e `firebase-messaging-sw.js` fica na raiz. Pergunta para a turma: eles conflitam? Como seria a arquitetura correta para **unificar cache offline + push** em um único Service Worker (ou como fazer dois SWs coexistirem corretamente com escopos diferentes)?
-2. **Versões diferentes do SDK do Firebase** usadas em cada arquivo (`10.0.0` no `firebase-messaging-sw.js` vs `10.11.0` no `index.html`) — por que isso é um risco de manutenção?
+1. **Um único Service Worker**: o projeto já teve dois arquivos (`service-worker.js` para cache e `firebase-messaging-sw.js` para FCM), mas o segundo nunca chegou a ser registrado em lugar nenhum do código — era um arquivo órfão. A arquitetura foi unificada em `service-worker.js`, na **raiz** de `public/`. Pergunta para a turma: quais as vantagens/desvantagens de um único SW versus dois SWs com escopos diferentes?
+2. **Módulos ES vs scripts clássicos em Service Workers**: `importScripts` só carrega scripts clássicos; usar os builds modulares (`firebase-app.js`/`firebase-messaging.js`, sem `-compat`) faz a avaliação do SW falhar silenciosamente no console (`Uncaught NetworkError` / `ServiceWorker script evaluation failed`). Por que isso é fácil de passar despercebido em testes locais?
 3. **`index_firebase.html`** é o template padrão gerado pelo `firebase init hosting` e não está integrado ao app — bom exemplo de "boilerplate esquecido" para mostrar como identificar código morto num projeto real.
 4. **Fallback de offline**: testar desligando a rede no DevTools (`Application > Service Workers > Offline`) e observar `offline.html` sendo servido.
 5. **Segurança**: diferenciar o que é "chave pública/identificador" (apiKey, VAPID key) do que precisa ser protegido no backend (nunca existe neste projeto porque tudo é client-side).
